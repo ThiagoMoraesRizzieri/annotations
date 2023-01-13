@@ -66,7 +66,7 @@ tfpw_bowl_df_TRMM$TRMM <- tfpw_mod(as.vector(bowl_df$TRMM))
 ggplot(tfpw_bowl_df_TRMM,
        aes(x=Data, y = TRMM, group = 1)) +
   geom_line() +
-  ggtitle("TRMM_pre_branqueamento")
+  ggtitle("TRMM_pre_whitening from 2000 to 2014")
 
 # Applying and saving the new Mann-Kendall test
 
