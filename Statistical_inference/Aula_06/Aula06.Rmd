@@ -1,0 +1,253 @@
+---
+title: "Aula 06"
+author: "Thiago Moraes Rizzieri"
+date: "`r Sys.Date()`"
+output: 
+  rmdformats::readthedown
+mainfont: Courier New
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Pacotes utilizados neste RMD.
+
+```{r}
+library("rmdformats")
+library("readxl")
+library("dplyr")
+```
+
+Rejeitamos uma hipótese nula se o p-valor for menor que 0.05.
+
+P-valor é a probabilidade até o extremo mais próximo, não necessariamente a probabilidade à direita.
+
+# Teste de hipóteses para dois parâmetros populacionais
+
+Função de distribuição (função acumulada F) empírica: função em escada que aumenta $\frac{1}{n}$ em cada observação amostral.
+
+Comenta sobre um teste de normalidade que utiliza esta função de distribuição empírica.
+
+# Teste de hipóteses para duas variâncias populacionais.
+
+Iremos comparar a igualdade entre duas variâncias.
+
+Estatística do teste é dada pela razão entre as duas variâncias. Quanto mais próximas forem, mais próximo o valor é de 1. Essa razão segue uma distribuição F (por ser uma razão de distribuições qui-quadrado).
+
+Os parâmetros da distribuição são $n-1$ e $m-1$ (são os graus de liberdade), sendo que $n$ é o tamanho amostral da primeira população e $m$ da segunda.
+
+## Exemplo 1
+
+Vamos comparar o comprimento de pexies de dois rios através de um teste de hipóteses.
+
+Iremos comparar a variabilidade das duas populações, sendo que a hipótese nula é a igualdade das variâncias.
+
+```{r}
+dados <- read_excel("06_DadosR.xlsx", sheet = 'Exemplo1')
+attach(dados)
+
+dados_r1 <- subset(dados, Rio == "R1")
+dados_r2 <- subset(dados, Rio == "R2")
+```
+Podemos agora fazer o teste de normalidade em cada um, veremos duas formas diferentes de se fazer:
+
+```{r}
+shapiro.test(dados_r1$Comprimento)
+shapiro.test(dados_r2$Comprimento)
+```
+
+ou então
+
+```{r}
+tapply(dados$Comprimento,Rio,shapiro.test)
+```
+
+Aplicaremos o teste de variância do comprimento pelo rio:
+
+```{r}
+var.test(Comprimento~Rio)
+```
+
+Outra forma de se fazer isso:
+
+```{r}
+var.test(dados_r1$Comprimento,dados_r2$Comprimento)
+```
+
+Observemos que a estatística do teste é a razão entre as variâncias, como dito anteriormente.
+
+```{r}
+var(dados_r1$Comprimento)/var(dados_r2$Comprimento)
+```
+
+No teste, temos que o p-valor foi de 0.6011, indicando que não rejeitamos a hipótese nula de que as variâncias são iguais.
+
+Podemos calcular o valor de p no nosso teste bilateral pela distribuição da F também:
+
+```{r}
+(1-pf(1.3297,14,14))*2
+```
+
+## Teste entre duas médias
+
+```{r}
+t.test(Comprimento~Rio, var.equal = TRUE, alternative = "two.sided")
+```
+Podemos ver que o p-valor é $6.388*10^{-7}$, menor que $0.025$, e além disso, que o intervalo é inteiramente negativo. Logo rejeitamos a hipótese de que as médias são equivalentes (diferença igual à zero).
+
+## Exemplo 2
+
+Uma pesquisa avaliou informações de pacientes atendidos em um grande hospital com o objetivo de comparar a gravidade do estado de saúde no primeiro atendimento dos pacientes. A gravidade é maior entre os não vacinados quando comparada aos vacinados?
+
+1- Não urgente
+2- Pouco urgente
+3- Urgente
+4- Muito urgente
+5- Emergência
+
+Utilizaremos a mediana para isso.
+
+H0: A mediana dos vacinados é maior ou igual à mediana dos não vacinados.
+
+H1: A mediana dos vacinados é menor do que a dos vacinados.
+
+```{r}
+rm(list = ls())
+dados <- read_excel("06_DadosR.xlsx", sheet = 'Exemplo2')
+dados$Vacina <- ordered(dados$Vacina,levels=c("Sim","Nao"))
+attach(dados)
+head(dados)
+```
+Primeiramente, testamos a normalidade para cada caso.
+
+```{r}
+tapply(Gravidade2,Vacina,shapiro.test)
+tapply(Gravidade2,Vacina,summary)
+```
+Rejeitamos a hipótese de normalidade para as duas populações.
+
+Aplicamos o teste wilcox.
+
+```{r}
+wilcox.test(Gravidade2~Vacina,alternative = "l")
+```
+
+Portanto, rejeitamos a hipótese nula. A mediana dos vacinados é menor que a dos não vacinados.
+
+
+## Teste de hipóteses para duas médias de populações dependentes
+
+Exemplo 3: nível de glicose no sangue antes e depois de um tratamento.
+
+Houve melhora com o tratamento? Ou seja:
+
+H0: Piora (média antes menor ou igual a depois)
+
+H1: Melhora (média antes maior que a depois) (unilateral à direita)
+
+Ou também:
+
+H0: Diferença menor ou igual a zero.
+
+H1: Diferença maior que zero.
+
+```{r}
+rm(list = ls())
+dados <- read_excel("06_DadosR.xlsx", sheet = 'Exemplo3')
+attach(dados)
+head(dados)
+```
+
+Precisamos colocar que os dados são pareados no teste para considerarmos a dependência.
+(Não precisamos comparar as variâncias nesse caso)
+
+```{r}
+t.test(Glicemia_Antes,Glicemia_Depois,paired = T,alternative = "g")
+```
+Ou seja, como o p-valor é menor que 0.05, então rejeitamos a hipótese nula de que a diferença é menor ou igual a zero. Portanto, como a diferença é maior que zero, a glicemia de antes é maior que a glicemia depois do tratamento, e então, concluímos que houve uma mlehora.
+
+Pode ser um teste não paramétrico pareado pelo wilcox também.
+
+```{r}
+wilcox.test(Glicemia_Antes,Glicemia_Depois,paired = T,alternative = "g")
+```
+
+Resulta na mesma conclusão. Mas como é não paramétrico, estamos levando em conta a diferença das medianas, ao invés da diferença das médias.
+
+## Teste de hipóteses para duas proporções populacionais
+
+Exemplo 4: Proporção de tumores detectados pelo método de imagem A e pelo método de imagem B.
+
+H0: Proporção de A igual ao de B.
+
+H1: Proporções diferentes. (teste bilateral)
+
+```{r}
+rm(list = ls())
+# Quantidade utilizada em cada método
+n <- c(217,113)
+# Quantidade de acertos em cada teste
+x <- c(200,112)
+```
+
+Aplicamos teste qui-quadrado. Grau de liberdade: (num de linhas - 1)*(num de colunas - 1).
+
+```{r}
+prop.test(x,n)
+```
+P-valor menor que 0.05, então rejeitamos a hipótese nula de que as proporções são equivalentes.
+
+## Teste qui-quadrado de homogeneidade.
+
+Se duas ou mais populações seguem uma mesma distribuição.
+
+H0: Todas seguem a mesma distribuição.
+H1: Há pelo menos uma que não segue a mesma distribuição.
+
+Exemplo 5: Preferência de área de estudo em três escolas.
+
+```{r}
+rm(list = ls())
+dados <- read_excel("06_DadosR.xlsx", sheet = 'Exemplo5')
+attach(dados)
+head(dados)
+```
+Vamos verificar as frequências:
+
+```{r}
+tabela <- table(Escola,Area)
+```
+
+```{r}
+teste <- chisq.test(tabela)
+teste
+```
+
+(Valores esperados na tabela precisam ser maiores que 5 para não enviesar o teste)
+
+```{r}
+teste$observed
+teste$expected
+```
+
+## Teste de independêcia por qui-quadrado
+
+H0: independentes.
+
+Exemplo 6: Verificar se há dependência entre estágio da doença e óbito.
+
+```{r}
+rm(list = ls())
+dados <- read_excel("06_DadosR.xlsx", sheet = 'Exemplo6')
+attach(dados)
+head(dados)
+```
+```{r}
+tabela <- table(Estagio,Obito)
+teste <- chisq.test(tabela)
+teste$observed
+teste$expected
+teste
+```
+

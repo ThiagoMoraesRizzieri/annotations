@@ -1,0 +1,190 @@
+---
+title: "AtivIdade 06"
+author: "Thiago Moraes Rizzieri"
+date: "`r Sys.Date()`"
+output: 
+  rmdformats::readthedown
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Pacotes utilizados neste RMD.
+
+```{r}
+library("rmdformats")
+library("readxl")
+library("dplyr")
+library("ggplot2")
+```
+
+# Exercício 1
+
+Um estudo avaliou o efeito de dois medicamentos num grupo de pacientes com problemas cardíacos. Os pacientes foram aleatoriamente selecionados para receber um dos medicamentos. A idade e os níveis de colesterol (lipoproteínas de alta densidade, HDL) estão disponíveis na planilha.
+
+## a) Verifique a suposição de normalidade da idade e dos níveis de colesterol destes pacientes.
+
+**Resolução:** Primeiramente, vamos ler os dados:
+
+```{r}
+dados <- read_excel("06_Atividade_dados.xlsx", sheet="Exerc1")
+head(dados)
+attach(dados)
+```
+
+Para análisar a suposição de normalidade dos dados, precisamos separar os dados referentes ao medicamento M1 e ao medicamento M2. Iremos extrair estes dois subconjuntos.
+
+```{r}
+dados_M1 <- subset(dados, Grupo == "M1")
+dados_M2 <- subset(dados, Grupo == "M2")
+```
+
+Antes de fazer a análise, podemos plotar os gráficos para visualizarmos suas distribuições.
+
+```{r}
+hist(dados_M1$Idade)
+hist(dados_M2$Idade)
+hist(dados_M1$Colesterol)
+hist(dados_M2$Colesterol)
+```
+Podemos aplicar nosso teste de hipóteses de normalidade sendo que as hipóteses são:
+
+$H_0:$ A variável possui distribuição normal.
+
+$H_1:$ A variável não possui distribuição normal.
+
+Aplicando o teste de normalidade em cada variável:
+
+```{r}
+shapiro.test(dados_M1$Idade)
+shapiro.test(dados_M2$Idade)
+shapiro.test(dados_M1$Colesterol)
+shapiro.test(dados_M2$Colesterol)
+```
+
+Podemos ver que em todos os casos há um p-valor bem alto. Assim, considerando um nível de significância de 0.05, não rejeitamos a hipótese de normalidade de nenhum dos casos.
+
+## b) Compare as variâncias da idade e do nível de colesterol dos pacientes que receberam os dois medicamentos, com nível de significância de 0,05.
+
+**Resolução:** Com a hipótese de normalidade dos dados verificada, podemos prosseguir com um teste de hipóteses para a comparação de duas variâncias pela distribuição F. Neste caso, iremos comparar as variâncias da idade e do colesterol entre os dois grupos.
+
+$H_0:$ As variâncias são iguais.
+
+$H_1:$ As variâncias não são iguais.
+
+Vamos analisar por primeiro em relação ao colesterol.
+
+```{r}
+var.test(Colesterol ~ Grupo)
+```
+
+No teste, temos que o p-valor foi de 0.9822, indicando que não rejeitamos a hipótese nula de que as variâncias são iguais.
+
+Já no caso das idades:
+
+```{r}
+var.test(Idade ~ Grupo)
+```
+
+Obtemos um p-valor de 0.08381 que não é tão alto, mas já é maior que o nível de significância de 0.05, indicando que também não rejeitamos a hipótese nula de que as variâncias são iguais.
+
+Portanto, podemos inferir que as variâncias da idade e colesterol são iguais em ambos os grupos.
+
+## c) Há diferenã das médias da idade e do nível de colesterol dos pacientes entre os dois grupos? Utilize o nível de significância de 0,05. Construa os intervalos de confiança de 95% para a diferença de médias entre os grupos das duas variáveis.
+
+**Resolução:** Novamente, como a hipótese de normalidade foi testada, podemos aplicar um teste de hipóteses entre médias pela distribuição t-student. Além disso, precisamos saber se as variâncias são iguais ou não para aplicarmos o teste.
+
+$H_0:$ As variáveis possuem a mesma média (diferença das médias igual à zero).
+
+$H_1:$ As variáveis possuem médias distintas (diferença das médias diferente de zero).
+
+Primeiramente faremos a comparação do colesterol nos dois grupos.
+
+```{r}
+t.test(Colesterol~Grupo, var.equal = TRUE, alternative = "two.sided")
+```
+
+Obtemos um p-valor de 0.0155 que é abaixo do nível de significância de 0.05 indicando a rejeição da hipótese nula de médias iguais. Podemos inclusive notar que o intervalo de confiança de 95% da diferença entre as médias não inclui o valor 0, indicando que há pouca chance das médias serem iguais.
+
+Assim, rejeitando a hipótese nula, inferimos que as médias de colesterol são diferentes entre os dois grupos.
+
+Já nas idades:
+
+```{r}
+t.test(Idade~Grupo, var.equal = TRUE, alternative = "two.sided")
+```
+
+O p-valor de 0.1354 é maior que o nível de significância, indicando a não rejeição da hipótese nula de que as médias são iguais.
+
+Portanto, podemos inferir que as médias das idades nos dois grupos são iguais, porém os níveis de colesterol são distintos.
+
+## d) Interprete os resultados obtidos.
+
+**Resolução:** Podemos dizer primeiramente que houve uma boa amostragem e delineamento de experimento realizado, no qual pudemos obter variáveis que atendessem algumas suposições estatísticas para nossas análises, tanto da normalidade, quanto da variância das variáveis. Além disso, a média das idades é igual nos dois grupos indicando qualidade da pesquisa também, pois uma média diferente poderia ocasionar num viés para demais análises, como na do colesterol.
+
+Por fim, chegamos na conclusão de que há diferença na média de colesterol entre cada grupo, indicando que há relação (não necessariamente causal) entre o medicamento e o nível de colesterol.
+
+E observando os valores das médias:
+
+```{r}
+mean(dados_M1$Colesterol)
+mean(dados_M2$Colesterol)
+```
+
+Podemos dizer que o grupo com o medicamento M1 teve uma média maior de colesterol do que o com o medicamento M2, embora as variâncias sejam as mesmas.
+
+# Exercício 2
+
+Um levantamento avaliou a qualidade do serviço prestado por duas empresas de transporte municipal por parte dos usuários. O questionário perguntou a opinião sobre o serviço e as possíveis respostas foram: Péssimo, Ruim, Regular, Bom e Ótimo. Os dados encontram-se na planilha. Há diferença de opinião dos usuários entre as duas empresas? Use o nível de significância de 0,05.
+
+**Resolução:**
+
+
+```{r}
+dados2 <- read_excel("06_Atividade_dados.xlsx", sheet="Exerc2")
+head(dados2)
+attach(dados2)
+```
+
+Para fazer a análise, precisaremos atribuir valores para definir a ordem da variável categórica ordinal Opinião. Para isso, podemos usar o pacote dplyr.
+
+```{r}
+dados2 <- dados2 %>%
+  mutate(
+    Opinião2 = case_when(
+      Opinião == "Péssimo" ~ 1,
+      Opinião == "Ruim" ~ 2,
+      Opinião == "Regular" ~ 3,
+      Opinião == "Bom" ~ 4,
+      Opinião == "Ótimo" ~ 5
+    )
+  )
+
+attach(dados2)
+```
+
+Neste caso, como temos variáveis categóricas, utilizaremos a mediana para o teste de hipóteses.
+
+$H_0:$ A mediana das opiniões são iguais entre as empresas.
+
+$H_1:$ A mediana das opiniões são diferentes.
+
+Podemos agora fazer um teste de normalidade para cada caso. Novamente, a hipótese nula é de que a distribuição é normal.
+
+```{r}
+tapply(Opinião2,Empresa,shapiro.test)
+```
+
+Em ambos os casos o p-valor é bem pequeno, ou seja, rejeitamos a hipótese de normalidade nas distribuições das opiniões da empresa A e da empresa B.
+
+Por isso, precisaremos utilizar um teste de hipóteses que não dependa da variável ter distribuição normal, como o teste wilcox.
+
+Aplicando o teste:
+
+```{r}
+wilcox.test(Opinião2~Empresa,alternative = "two.sided")
+```
+
+Como o p-valor é extremamente pequeno, e consequentemente menor que o nível de significância de 0.05, rejeitamos a hipótese nula de que as medianas entre as empresas são iguais.
+

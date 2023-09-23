@@ -1,0 +1,149 @@
+---
+title: "Aula 07"
+author: "Thiago Moraes Rizzieri"
+date: "`r Sys.Date()`"
+output: 
+  rmdformats::readthedown
+mainfont: Courier New
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Pacotes utilizados neste RMD.
+
+```{r}
+library("rmdformats")
+library("readxl")
+library("dplyr")
+```
+
+## Análise de variância de mais de dois grupos - ANOVA
+
+Começa explicando sobre noções de delineamento de experimento: unidade experimental, tratamento, repetição, planejamento de experimento e delineamento totalmente ao acaso.
+
+Tipos de soma do quadrado dos erros:
+
+SQTotal: variação em torno da média global.
+
+SQEntre: variação entre as médias dos tratamentos com a média global.
+
+SQDentro: variação dentro de cada tratamento.
+
+Variação Total = Variação Entre + Variação Dentro
+
+Exemplo: Um experimento deseja avaliar o ganho de peso de peixes 
+
+```{r}
+dados <- read_excel("07_Dados.xlsx")
+attach(dados)
+head(dados)
+```
+
+Qual a média global neste caso? Ou seja, independente da dieta que o peixe recebeu.
+
+```{r}
+mean(Peso)
+```
+
+Qual a média entre cada tratamento (dieta)?
+
+```{r}
+tapply(Peso,Dieta,mean)
+```
+
+Qual a variância entre cada tratamento?
+
+```{r}
+tapply(Peso,Dieta,var)
+tapply(Peso,Dieta,sd)
+```
+
+Podemos ver a variabilidade de cada tratamento por meio de um boxplot também.
+
+```{r}
+boxplot(Peso~Dieta)
+```
+
+Ela cria um modelo linear que utiliza como parâmetros as diferenças das dietas com uma dieta de referência (no caso a dieta A). Seria como cada dieta está afetando no valor do peso (interessante). Veremos melhor sobre isso na próxima aula.
+
+```{r}
+modelo <- lm(Peso~Dieta)
+modelo
+```
+
+```{r}
+anova <- aov(modelo)
+summary(anova)
+```
+
+Quadro da anova:
+
+Causas da variação: Dieta e Resíduos.
+
+Graus de liberdade: Segue a ideia da variância. Como você usa a média no calculo da variância, você já perde uma informação, pois a média já é estimada. Podemos também interpretar como quantas variáveis livres estarão na 
+
+Soma do quadrado dos erros: SQEntre e SQDentre
+
+Quadrado médio: Soma do quadrado dos erros dividido pelo respectivo grau de liberdade.
+
+Estatística F: Razão entre o quadrado médio do tratamento com o quadrado médio do resíduo. Quanto maior, indica que o peso médio são distintos.
+
+$F_{obs} = \frac{QMed_{Entre}}{QMed_{Dentre}} \sim \frac{\chi ^2/gl1}{\chi ^2/gl2}\sim F(gl1,gl2)$
+
+P-valor: neste caso sempre será a probabilidade à direita, pois a distribuição F é positiva. É a probabilidade de haver um F mais extremo que o F observado. Se a probabilidade for muito pequena, significa que nosso F já é bem extremo, indicando rejeição da nossa hipótese nula (que pelo menos uma das dietas difere das demais).
+
+Suposição: normalidade dos resíduos (shapiro.test), independência (dwtest) e homocedasticidade.
+
+Suposição: resíduos (rever)
+
+```{r}
+res_pad <- rstandard(modelo)
+summary(res_pad)
+tapply(res_pad,Dieta,summary)
+```
+
+
+```{r}
+anova$fitted.values
+anova$residuals
+```
+```{r}
+plot(anova$fitted.values,anova$residuals)
+```
+Pelo que entendi são os resíduos ao redor de cada uma das médias.
+
+Independente do tratamento o módulo do resíduo é menor que 3. (suposição)
+
+## Teste de normalidade:
+
+```{r}
+shapiro.test(anova$residuals)
+```
+Não rejeitamos a normalidade dos resíduos.
+
+## Teste de independência:
+
+```{r}
+library(lmtest)
+```
+
+```{r}
+dwtest(Peso~Dieta)
+```
+
+## Teste de homocedasticidade:
+
+Teste de Bartlett: requer normalidade.
+
+Teste de Levene e Fligner: caso não tenhamos normalidade.
+
+```{r}
+bartlett.test(Peso~Dieta)
+```
+
+Não rejeitamos a hipótese de que as variâncias entre as dietas são equivalentes.
+
+## Teste de comparação de Tukey:
+

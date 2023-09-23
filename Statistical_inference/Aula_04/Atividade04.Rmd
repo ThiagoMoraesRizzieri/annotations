@@ -1,0 +1,150 @@
+---
+title: "AtivIdade 04"
+author: "Thiago Moraes Rizzieri"
+date: "`r Sys.Date()`"
+output: 
+  rmdformats::readthedown
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Pacotes utilizados neste RMD.
+
+```{r}
+library("rmdformats")
+library("readxl")
+library("dplyr")
+```
+
+# Exercício 1
+
+Um experimento avaliou o desempenho de uma pomada medicinal natural para o tratamento de feridas dermatológicas.
+
+## a) Calcule o intervalo de confiança de 95% para a Idade média dos pacientes deste estudo.
+
+Primeiramente, vamos ler os dados.
+
+```{r}
+dados <- read_excel("dados_ativIdade.xlsx")
+head(dados)
+attach(dados)
+```
+
+Como queremos um intervalo de confiança para a média de uma amostra que desconhecemos sua variância, podemos utilizar a distribuição t-student. Para tal, basta seguirmos o seguinte algoritmo:
+
+```{r}
+n <- length(Idade) # quantidade de elementos da variável
+media <- mean(Idade) # média da variável
+dp <- sd(Idade)
+q975 <- qt(0.975,df=n-1) # quantil 0.95 na t studente
+
+media - q975*dp/sqrt(n) # Limite à esquerda do intervalo
+media + q975*dp/sqrt(n) # Limite à direita do intervalo
+
+```
+
+Podemos testar esse resultado com um outro código que expõe o valor do intervalo de forma mais imediata:
+
+```{r}
+t.test(Idade)
+```
+
+Logo, o intervalo de confiança de $95\%$ para a Idade média dos pacientes deste estudo é $(49.18643,50.32607)$.
+
+## b) Apresente um intervalo de confiança de 95% para a proporção de resultado positivo deste tratamento e verifique se a eficácia é superior a 80%.
+
+Primeiramente, pegamos a quantidade de resultados positivos e negativos dos dados.
+
+```{r}
+pos <- table(Resultado)["Positivo"]
+neg <- table(Resultado)["Negativo"]
+```
+
+Podemos tirar a proporção de positivos dividindo pelo valor total de resultados e aplicar o seguinte algoritmo:
+
+```{r}
+p.est <- pos/(pos+neg) # proporção
+names(p.est) <- NULL
+EP<-sqrt(p.est*(1-p.est)/156)
+(p.est-qnorm(0.975)*EP) # LI
+(p.est+qnorm(0.975)*EP) # LS
+```
+
+Assim, o intervalo de confiança de $95\%$ para a proporção de resultado positivo deste tratamento é de $(0.8341951,0.9345549)$. Logo, visto o intervalo de confiança, a eficácia é superior à 80%.
+
+# Exercício 2
+
+Um levantamento deseja estudar as características de morcegos de uma região com o objetivo de verificar se o peso médio é superior a 100 gramas. A partir da amostra dos morcegos, calcule o intervalo de confiança de 95% para o peso médio dos morcegos e verifique o objetivo do estudo.
+
+Primeiramente, iremos ler os dados deste exercício.
+
+```{r}
+dados <- read_excel("dados_ativIdade.xlsx", sheet="Ex2")
+head(dados)
+attach(dados)
+```
+Novamente, queremos um intervalo de confiança para uma média desconhecendo a sua variância populacional. Aplicamos o teste t-student conforme descrito no algoritmo abaixo:
+
+```{r}
+n <- length(peso)
+media <- mean(peso)
+dp <- sd(peso)
+q975 <- qt(0.975,df=n-1) # quantil 0.95 na t studente
+
+media - q975*dp/sqrt(n)
+media + q975*dp/sqrt(n)
+```
+Também podemos confirmar com o seguinte código:
+
+```{r}
+t.test(peso)
+```
+
+Portanto, o intervalo de confiança de $95\%$ para o peso médio dos morcegos é de $(110.618,117.132)$. 
+
+# Exercício 3
+
+Utilizando os dados do Exercício anterior, compare o peso médio dos morcegos insetívoros e hematófagos por meio de intervalo de confiança.
+
+Primeiramente podemos separar os valores de peso entre os morcegos com as diferentes alimentações:
+
+```{r}
+dados_i <- dados %>% 
+  filter(alimentacao == "Insentivoro")
+
+dados_h <- dados %>% 
+  filter(alimentacao == "Hematofago")
+```
+
+Em seguida, fazemos um sorteio de cada peso de um morcego de um tipo de morcego e subtraímos com o peso sorteado de um outro tipo de morcego, obtendo as diferenças entre as variáveis:
+
+```{r}
+set.seed(7)
+dif <- sample(dados_i$peso) - sample(dados_h$peso)
+
+```
+
+Assim, podemos seguir o seguinte algoritmo para encontrarmos o intervalo de confiança baseando-se no teste t-student pareado:
+
+```{r}
+n <- length(dif)
+media <- mean(dif)
+dp <- sd(dif)
+q0.975 <- qt(0.975,df=n-1)
+
+media-q0.975*dp/sqrt(n)
+media+q0.975*dp/sqrt(n)
+```
+Podemos confirmar nosso resultado com um código simplificado:
+
+```{r}
+set.seed(7)
+t.test(sample(dados_i$peso),sample(dados_h$peso),paired=T)
+```
+Temos então um intervalo de $95\%$ de confiança de que a diferença esteja no intervalo $(-16.528059,-7.838608)$, significando que há uma diferença entre a média dos pesos entre os tipos de morcegos.
+
+
+
+

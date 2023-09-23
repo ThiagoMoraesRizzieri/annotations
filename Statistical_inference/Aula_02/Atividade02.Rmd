@@ -1,0 +1,189 @@
+---
+title: "Atividade 02"
+author: "Thiago Moraes Rizzieri"
+date: "2023-08-14"
+output: 
+  rmdformats::readthedown
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Exercício 1
+
+## Classifique cada uma das variáveis de estudo
+
+**Resolução:**
+
+Identificação: variável qualitativa nominal;
+
+Local: variável qualitativa nominal;
+
+Presença de coliforme: variável qualitativa ordinal;
+
+Nitrato: variável quantitativa contínua;
+
+PH: variável quantitativa contínua;
+
+# Exercício 2 
+
+Verifique a existência de pontos discrepantes de nitrato e PH por meio de gráficos e estatísticas descritivas. Realize a correção das informações implausíveis, visto que houve o esquecimento do ponto como erro de digitação.
+
+**Resolução:** Carregando algumas bibliotecas.
+
+```{r}
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+```
+
+Carregando os dados.
+```{r}
+df <- read_excel("Atividade02.xlsx")
+names(df) <- c("ID","Local","Presenca","Nitrato","PH")
+df <- drop_na(df)
+summary(df)
+```
+
+Podemos visualizar se há pontos discrepantes no gráfico Boxplot.
+
+Primeiramente em relação ao Nitrato:
+
+```{r}
+ggplot(df,aes(y=Nitrato))+
+  geom_boxplot()+
+  labs(title = "Boxplot da quantidade de nitrato")
+```
+
+Em seguida em relação ao PH:
+
+```{r}
+ggplot(df,aes(y=PH))+
+  geom_boxplot()+
+  labs(title = "Boxplot da quantidade de PH")
+```
+
+Podemos observar que há vários outliers presentes na variável Nitrato enquanto que não há nenhum na variável PH.
+
+Porém, apenas 5 pontos estão sendo extremamente discrepantes a ponto de considerarmos que tenham sido erros de digitação.
+
+```{r}
+df %>%
+  arrange(desc(Nitrato)) %>%
+  head(5)
+```
+
+Dessa forma, podemos pensar na seguinte correção: pegamos os 5 maiores valores de nitrato e dividimos todos por 10, para acrescentar a vírgula onde possivelmente deveria ter sido colocada.
+
+```{r}
+df <- df %>%
+  arrange(desc(Nitrato)) %>%
+  mutate(Nitrato = ifelse(row_number() <= 5, Nitrato / 10, Nitrato))
+```
+Dessa forma, podemos visualizar o gráfico Boxplot do Nitrato novamente e veremos que a quantidade de outliers extremos diminuirá significativamente, embora que ainda tenham alguns.
+
+```{r}
+ggplot(df,aes(y=Nitrato))+
+  geom_boxplot()+
+  labs(title = "Boxplot da quantidade de nitrato")
+```
+
+# Exercício 3
+
+As distribuições de amostras com coliformes entre os locais são diferentes? Avalie por meio de tabelas e gráficos.
+
+**Resolução:** Uma forma de podermos enxergar bem as distribuições é por meio dos histogramas.
+
+Primeiramente, observamos que cada um dos locais possui a mesma quantidade de observações.
+
+```{r}
+df %>% 
+  group_by(Local) %>% 
+  count()
+```
+Dessa forma, podemos construir histogramas baseados simplesmente na contagem, sem precisar trabalhar com porcentagens.
+
+Assim, temos os seguintes histogramas:
+
+```{r}
+ggplot(df,aes(x=Presenca, fill=Local))+
+  geom_bar()+
+  facet_grid(~Local)+
+  labs(x = "Presença",y = "Contagem", title = "Histograma da presença de coliforme por local")+ 
+  theme(legend.position = "none")
+```
+
+Apenas visualizando os gráficos, podemos notar que todos os locais são bem parecidos em relação à distribuição da presença de coliformes, com exceção da Lagoa Branca, que parece ter uma presença maior que as demais. Porém, qualquer afirmação deverá ser inferida por testes estatísticos eficientes.
+
+# Exercício 4 
+
+Construa o histograma e o box-plot do nitrato por local. Calcule as estatísticas descritivas como média, desvio-padrão, quartis do nitrato por local.
+
+**Resolução:**
+
+```{r}
+ggplot(df,aes(x=Nitrato,fill = Local))+
+  geom_histogram(bins=20)+
+  facet_grid(~Local)+
+  labs(x = "Nitrato",y = "Contagem", title = "Histograma da quantidade de nitrato por local")+ 
+  theme(legend.position = "none")
+```
+
+```{r}
+ggplot(df,aes(y=Nitrato))+
+  geom_boxplot()+
+  facet_grid(~Local)+
+  labs(y = "Nitrato", title = "Boxplot da quantidade de nitrato por local")
+```
+
+```{r}
+df %>% 
+  group_by(Local) %>% 
+  summarise(media = mean(Nitrato),
+            desvio_padrao = sd(Nitrato),
+            primeiro_quartil = quantile(Nitrato, 0.25),
+            mediana = median(Nitrato),
+            terceiro_quartil = quantile(Nitrato, 0.75))
+```
+
+
+# Exercicio 5 
+
+Construa o histograma e o box-plot do PH por local. Calcule as estatísticas descritivas como média, desvio padrão, quartis do PH por local.
+
+**Resolução:**
+
+```{r}
+ggplot(df,aes(x=PH,fill = Local))+
+  geom_histogram(bins=8)+
+  facet_grid(~Local)+
+  labs(x = "PH",y = "Contagem", title = "Histograma da quantidade de PH por local")+ 
+  theme(legend.position = "none")
+```
+
+```{r}
+ggplot(df,aes(y=PH))+
+  geom_boxplot()+
+  facet_grid(~Local)+
+  labs(y = "PH", title = "Boxplot da quantidade de nitrato por local")
+```
+
+```{r}
+df %>% 
+  group_by(Local) %>% 
+  summarise(media = mean(PH),
+            desvio_padrao = sd(PH),
+            primeiro_quartil = quantile(PH, 0.25),
+            mediana = median(PH),
+            terceiro_quartil = quantile(PH, 0.75))
+```
+
+# Exercicio 6
+
+A distribuição de nitrato e PH difere entre os locais avaliados? Discuta a partir dos itens (4) e (5).
+
+**Resolução:** Aparentemente, a distribuição de nitrato parece ser bem semelhante em todos os locais, com exceção de Bosque dos Jequitibás, que aparenta ter uma variação maior que os demais.
+
+Já na distribuição de PH, todos parecem ser bem semelhantes à primeira vista. Uma análise mais aprofundada deverá ser feita para ter mais detalhes.

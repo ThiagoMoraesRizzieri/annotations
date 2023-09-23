@@ -1,0 +1,111 @@
+---
+title: "Aula03"
+date: "`r Sys.Date()`"
+output: 
+  rmdformats::readthedown
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library("rmdformats")
+```
+
+Revisão de distribuições de probabilidade.
+
+Árvore de probabilidades da distribuição binomial. (interessante para explicar)
+
+Calculando a probabilidade na distribuição binomial.
+
+```{r}
+dbinom(0,3,0.8)
+```
+
+Podemos testar todas as possibilidades.
+
+```{r}
+dbinom(0:3,3,0.8)
+```
+
+Falou da multinomial também. O que estudamos de inferência para a binomial também serve para a multinomial?
+
+Exemplo: numa floricultura, as probabilidades de um certo cliente comprar rosa vermelha, branca ou azul são 0.5, 0.3 e 0.2, respectivamente. Sabendo que 5 clientes apareceram no dia, qual a chance de:
+
+Termos 3 vermelhas, 1 branca e 1 azul?
+
+```{r}
+dmultinom(c(3,1,1),prob = c(0.5,0.3,0.2))
+```
+Se quisermos todas as possibilidades?
+
+```{r}
+resultados <- list()
+
+for (x in 0:5) {
+  for (y in 0:5) {
+    for (z in 0:5) {
+      if (x + y + z == 5) {
+        resultados <- c(resultados, list(c(x, y, z)))
+      }
+    }
+  }
+}
+
+resultados
+
+```
+
+```{r}
+for (i in resultados){
+  print(i)
+  print(dmultinom(i,prob = c(0.5,0.3,0.2)))
+}
+
+```
+
+Veremos agora a distribuição de Poisson:
+
+Supondo que o número de visitas de abelhas numa flor siga uma distribuição de poisson com média de 3 visitas. Qual a chance de haver 4 visitas?
+
+```{r}
+dpois(4,3)
+```
+E se for no máximo 2 visitas?
+
+```{r}
+sum(dpois(0:2,3))
+```
+
+E se for pelo menos 3 visitas?
+
+```{r}
+1 - sum(dpois(0:2,3))
+```
+
+Distribuição normal.
+
+Qual a probabilidade de um girassol ter menos que 23 cm sendo que a média é 25.5 e o desvio padrão é 4.7, supondo distribuição normal.
+
+```{r}
+pnorm(23,25.5,4.7)
+```
+E se quisermos a probabilidade de ser entre 29 e 22 cm?
+
+```{r}
+pnorm(29,25.5,4.7) - pnorm(22,25.5,4.7)
+```
+
+E se quisermos o contrário. Queremos saber o valor com que a probabilidade de ser menor que esse valor seja de 0.25.
+
+```{r}
+qnorm(0.25,25.5,4.7)
+```
+Observação, se queremos o valor que qualquer valor acima, q a probabilidade seja maior que 0.10, por exemplo, este será o mesmo valor que a probabilidade de todos os valores que esteja abaixo seja de 0.90.
+
+(pode confundir �s vezes)
+
+
+
+

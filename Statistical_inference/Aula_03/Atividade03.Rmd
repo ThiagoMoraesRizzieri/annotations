@@ -1,0 +1,161 @@
+---
+title: "Atividade 03"
+author: "Thiago Moraes Rizzieri"
+date: "`r Sys.Date()`"
+output: 
+  rmdformats::readthedown
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Pacotes utilizados neste RMD.
+
+```{r}
+library("rmdformats")
+```
+
+# Exercício 1
+
+Em tanques de um pesqueiro, a probabilidade de cada alevino estar com tamanho ideal de comercialização é igual a 0.70. Ao selecionarmos 20 alevinos ao acaso, qual é a probabilidade de observarmos:
+
+## a) No máximo 12 em condições de venda?
+
+**Resolução:** Não é explícito no enunciado, mas como podemos interpretar como duas possibilidades, ter tamanho ideal e não ter, então temos um caso de ensaio de Bernoulli. Como temos 20 alevinos na amostra e queremos saber X casos de sucesso, podemos utilizar a distribuição Binomial para calcular.
+
+Dessa forma, como queremos que tenhamos no máximo 12 em condições de venda, isso seria a probabilidade de ter 0, 1, 2, 3 e até no máximo 12 em boas condições. Dessa forma, temos a probabilidade da união de cada evento, e por serem eventos disjuntos, podemos somar todas as probabilidades. Assim, façamos o seguinte código:
+
+```{r}
+sum(dbinom(0:12,20,0.7))
+```
+Portanto, a probabilidade de termos no máximo 12 em condições de venda é de 0,2277.
+
+## b) Entre 13 e 17 em condições de venda?
+
+**Resolução:** Pela mesma ideia do exercício anterior, podemos pegar a soma de diferentes probabilidades. No caso, somamos as probabilidades de termos entre 13 e 17 em condições de venda.
+
+```{r}
+sum(dbinom(13:17,20,0.7))
+```
+
+Logo, a probabilidade de termos entre 13 e 17 em condições de venda é de 0,7367.
+
+## c) Pelo menos 16 em condições de venda?
+
+**Resolução:** Neste caso, queremos que tenha pelo menos 16 em condições de venda, ou seja, de 16 à 20. Podemos novamente somar as probabilidades.
+
+```{r}
+sum(dbinom(16:20,20,0.7))
+```
+
+Portanto, a probabilidade de termos pelo menos 16 em condições de venda é de 0,2375.
+
+# Exercício 2
+
+Considere que o número de casos de acidentes envolvendo escorpiões segue uma distribuição Poisson com média de 6 por mês em uma cidade. Calcule a probabilidade, de termos, em um mês:
+
+## a) 7 acidentes?
+
+**Resolução:** Para usarmos o código da distribuição de Poisson precisamos apenas da média e do valor desejado para se encontrar a probabilidade. Dessa forma, temos o seguinte código:
+
+```{r}
+dpois(7,6)
+```
+
+Logo, a probabilidade de termos 7 acidentes em um mês é de 0,137677.
+
+## b) Pelo menos 4 acidentes?
+
+**Resolução:** Ou seja, queremos saber a probabilidade de termos de 4 acidentes para cima. No caso da distribuição de Poisson, todos os valores positivos da quantidade analisada pertencem ao domínio, ou seja, teríamos que calcular a soma de infinitos valores.
+
+Porém, existe um jeito mais simples. Como a soma de todas as probabilidades é sempre 1, basta calcular a probabilidade de termos entre 0 e 3 acidentes e retirar do total, 1. Assim, temos o código:
+
+```{r}
+1 - sum(dpois(0:3,6))
+```
+
+Portanto, a probabilidade de termos pelo menos 4 acidentes em um mês é de 0,8487961.
+
+## c) No máximo 10 acidentes?
+
+**Resolução:** Neste caso, calculamos a probabilidade de termos entre 0 e 10 acidentes.
+
+```{r}
+sum(dpois(0:10,6))
+```
+Logo, a probabilidade de termos no máximo 10 acidentes em um mês é de 0,9573791.
+
+# Exercício 3
+
+Suponha que os estágios de câncer no pulmão seguem uma distribuição Multinomial em que $p_1=0.15$, $p_2 =0.25$, $p_3 =0.25$, $p_4 =0.35$, em que $p_i$ representa a probabilidade de selecionar um paciente com câncer no estágio $i$. Ao selecionar 20 pacientes em um grande instituto para tratamento oncológico, qual é a probabilidade de observarmos:
+
+## a) 3, 5, 5 nos estágios 1 a 3, respectivamente, e os demais no estágio 4?
+
+**Resolução:** Queremos que os 3 primeiros da amostra aleatória estejam no estágio 1, os próximos 5 no estágio 2, os 5 seguintes no estágio 3 e os 7 restantes estejam no estágio 4. Como temos diferentes possibilidades, e cada uma com sua respectiva probabilidade, utilizamos a distribuição multinomial. Assim:
+
+```{r}
+dmultinom(c(3,5,5,7),prob = c(0.15,0.25,0.25,0.35))
+```
+Então, a probabilidade de termos 3, 5, 5 nos estágios 1 a 3, respectivamente, e os demais no estágio 4 é de 0,01156992.
+
+## b) 5, 4, 3 nos estágios 1 a 3, respectivamente, e os demais no estágio 4?
+
+**Resolução:** Podemos resolver da mesma forma que o item anterior, apenas trocando a quantidade de pacientes em cada estágio.
+
+```{r}
+dmultinom(c(5,4,3,7),prob = c(0.15,0.25,0.25,0.35))
+```
+Portanto, a probabilidade de termos 5, 4, 3 nos estágios 1 a 3, respectivamente, e os demais no estágio 4 é de 0,004165173.
+
+# Exercício 4
+
+Suponha que o ganho de peso de gestante segue uma distribuição Normal com média e desvio-padrão iguais a 13 e 5 quilos. Qual é a probabilidade de uma gestante, selecionada ao acaso, ter um ganho de peso:
+
+## a) Menor do que 12 quilos?
+
+**Resolução:** Dentre as distribuição apresentadas nessa atividade, essa é a única que se trata de uma distribuição contínua, e consequentemente, há uma pequena diferença em seu código em relação aos demais. O código que usaremos, já fornece a probabilidade de ser menor que um certo valor, dado a média e o desvio-padrão já conhecidos da distribuição.
+
+Assim, podemos simplesmente aplicar os valores conhecidos:
+
+```{r}
+pnorm(12,13,5)
+```
+Logo, a probabilidade de uma gestante ter um ganho menor do que 12 quilos é de 0,4207403.
+
+## b) Maior do que 18 quilos?
+
+**Resolução:** Neste caso, basta calcular a probabilidade de ser menor que 18 quilos e retirar do total. Assim, temos:
+
+```{r}
+1- pnorm(18,13,5)
+```
+Então, a probabilidade de uma gestante ter um ganho maior do que 18 quilos é de 0,4207403.
+
+## c) Entre 13 e 17 quilos?
+
+**Resolução:** Já nesse caso, podemos fazer o seguinte. Calculamos a probabilidade de ser menor do que 17 quilos e depois retiramos a probabilidade de ser menor que 13 quilos. Dessa forma, o resultado final é a probabilidade entre os dois valores. Então:
+
+```{r}
+pnorm(17,13,5)- pnorm(13,13,5)
+```
+Assim, a probabilidade de uma gestante ter um ganho entre 13 e 17 quilos é de 0,2881446.
+
+## d) Qual é o limite do ganho de peso esperado em 15% dos menores ganhos?
+
+**Resolução:** Neste item, precisamos de um outro código para podermos resolver, já que o valor de ganho de peso é o nosso objetivo. Usando este outro comando, podemos informar o quantil desejado e teremos o valor que deixa a dada porcentagem abaixo desse valor. Assim, temos:
+
+```{r}
+qnorm(0.15,13,5)
+```
+Logo, um ganho de aproximadamente 7,82 quilos é o valor que mantém 15% dos valores abaixo dele.
+
+## e) Qual é o limite do ganho de peso esperado em 5% dos maiores ganhos?
+
+**Resolução:** Neste caso, basta utilizar o mesmo comando do item anterior, mas colocando o quantil 0.95, já que o comando calcula o valor que deixa uma porcentagem abaixo dele. Assim, teremos o valor que deixa 95% dos valores abaixo dele, ou seja, um limite de 5% dos maiores ganhos. Temos então:
+
+```{r}
+qnorm(0.95,13,5)
+```
+
+Portanto, aproximadamente 21,22 quilos é o limite esperado que separa 5% dos maiores ganhos.

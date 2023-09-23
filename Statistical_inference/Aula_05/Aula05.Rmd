@@ -1,0 +1,131 @@
+---
+title: "Aula 05"
+author: "Thiago Moraes Rizzieri"
+date: "`r Sys.Date()`"
+output: 
+  rmdformats::readthedown
+mainfont: Courier New
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Pacotes utilizados neste RMD.
+
+```{r}
+library("rmdformats")
+library("readxl")
+```
+
+# Teste de hipóteses
+
+## Elementos de um teste de hipóteses estatístico
+
+1. Hipóteses $H_0$ (hipótese nula) e $H_1$ (hipótese alternativa, que é o foco da pesquisa);
+
+2. Nível de significância $\alpha$;
+
+3. Estatística do teste;
+
+4. Valor do $p$;
+
+### Exemplo: tratamento de cães
+
+### Sobre as hipóteses.
+
+Hipótese Unilateral à direita: $H_1$ maior que um certo valor.
+
+Hipótese Unilateral à esquerda: $H_1$ menor que um certo valor.
+
+Hipótese Bilateral: $H_1$ diferente de um certo valor.
+
+### Nível de significância.
+
+Probabilidade de rejeitar $H_0$ quando ela é verdadeira (conhecida como a probabilidade do erro tipo I).
+
+$P(Erro I) = \alpha = P(RejeitarH_0|H_0 verdadeira)$
+
+$P(Erro II) = \beta = P(NaoRejeitarH_0|H_0 falsa)$
+
+Costuma-se usar $alpha = 0.05$.
+
+### Valor de p
+
+Probabilidade à direita, a rejeição vai depender se a hipótese é unilateral ou bilateral tb (tomar cuidado).
+
+## Teste de hipóteses para uma proporção populacional
+
+Usamos a estatística da Qui-quadrado (rever o exemplo)
+
+Quanto maior a diferença entre observado e esperado, maior a estatística e maior a chance de que aquilo não segue a determinada proporção esperada.
+
+```{r}
+oi <- c(33,12) # Valores observados
+ei <- c(45*0.5,45*0.5) # Valores esperados
+
+(estat <- sum((oi-ei)^2/ei))
+
+1-pchisq(estat,df=1)
+```
+
+```{r}
+prop.test(33,45,p=0.5,correct=F,alternative = "g")
+```
+
+Logo, não há uma proporção de $0.5$. A proporção real de melhora é de aproximadamente $73.33\%$.
+
+(Obs: se o valor esperado for menor que 5, não é possível aplicar o teste qui-quadrado).
+
+## Testes para média populacional
+
+Ideia parecida com a do intervalo de confiança visto na aula anterior.
+
+Estatística do teste: t-student
+
+Exemplo, supondo a hipótese nula com uma média maior ou igual à 25.
+
+```{r}
+dadosIC <- read_excel("dadosIC.xlsx", sheet = "Comprimento")
+head(dadosIC)
+attach(dadosIC)
+```
+Podemos começar com uma análise descritiva e exploratória.
+
+```{r}
+hist(comprimento)
+```
+```{r}
+boxplot(comprimento)
+```
+```{r}
+n <- length(comprimento)
+media <- mean(comprimento)
+dp <- sd(comprimento)
+
+estat <- (media-25)*sqrt(n)/dp
+
+pt(estat,df=n-1)
+```
+```{r}
+t.test(comprimento, mu=25, alternative = "l")
+```
+Logo, a hipótese nula é rejeitada, a verdadeira média é menor que 25.
+
+Tudo isso que fizemos foi supondo uma distribuição normal, mas e se não pudermos?
+
+## Teste Shapiro-Wilk
+
+Objetivo é verificar se a distribuição normal. $H_0$ é sempre a distribuição-alvo, que no caso, é a distribuição normal.
+
+$H_1$: distribuição da amostra não é normal.
+
+```{r}
+shapiro.test(comprimento)
+```
+
+## Teste de Wilcoxon
+
+Caso não seja normal
+
+

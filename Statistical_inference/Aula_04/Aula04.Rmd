@@ -1,0 +1,161 @@
+---
+title: "Aula 04"
+author: "Thiago Moraes Rizzieri"
+date: "`r Sys.Date()`"
+output: 
+  rmdformats::readthedown
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Pacotes utilizados neste RMD.
+
+```{r}
+library("rmdformats")
+library("readxl")
+```
+
+# Inferência estatística
+
+RevisÃ£o de amostra e população.
+```{r}
+dadosIC <- read_excel("dadosIC.xlsx")
+head(dadosIC)
+attach(dadosIC)
+```
+
+Estatísticas da distribuição.
+
+```{r}
+mi <- mean(tamanho)
+sigma <- sd(tamanho)
+```
+
+Histograma de toda a avariÃ¡vel tamanho.
+
+```{r}
+hist(tamanho)
+```
+
+Vamos trabalhar agora com uma amostra.
+
+```{r}
+set.seed(1609)
+amostra <- sample(tamanho,size=50,replace=FALSE)
+summary(amostra)
+mean(amostra)
+
+```
+# Criando intervalos.
+
+```{r}
+EP <- (sigma/sqrt(50))*sqrt((500-50)/(500-1))
+
+mi-qnorm(0.975)*EP
+mi+qnorm(0.975)*EP
+
+qnorm(0.025,mi,EP)
+qnorm(0.975,mi,EP)
+```
+
+# Vamos calcular um IC para a mÃ©dia $\mu$ conhecendo $\sigma$.
+
+```{r}
+media <- mean(amostra)
+
+media - qnorm(0.975)*EP
+media + qnorm(0.975)*EP
+```
+
+# Vamos calcular uma IC para a mÃ©dia $\mu$ desconhecendo $\sigma$.
+
+Quanto maior o grau de liberdade da t-student, mais prÃ³ximo fica da normal.
+
+Exemplo slide 14.
+
+```{r}
+dadosIC <- read_excel("dadosIC.xlsx", sheet = "Comprimento")
+head(dadosIC)
+attach(dadosIC)
+```
+
+```{r}
+n <- length(comprimento)
+media <- mean(comprimento)
+dp <- sd(comprimento)
+q97.5 <- qt(0.975,df=n-1) # quantil 0.975 na t studente
+
+media - q97.5*dp/sqrt(n)
+media + q97.5*dp/sqrt(n)
+```
+
+# IC para proporção.
+
+Exemplo slide 16.
+
+```{r}
+156-12
+(p.est<-144/156) # proporção estimada
+(EP<-sqrt(p.est*(1-p.est)/156))
+(p.est-qnorm(0.975)*EP) # LI
+(p.est+qnorm(0.975)*EP) # LS
+```
+
+# IC para diferenÃ§a de mÃ©dias.
+
+Exemplo slide 18
+
+```{r}
+dadosIC <- read_excel("dadosIC.xlsx", sheet = "Glicemia")
+head(dadosIC)
+attach(dadosIC)
+```
+
+Calculamos as diferenÃ§as e acrescentamos Ã  tabela.
+
+```{r}
+difA_D <- Glicemia_Antes - Glicemia_Depois
+cbind(dadosIC,difA_D)
+```
+
+```{r}
+n <- length(difA_D)
+media <- mean(difA_D)
+dp <- sd(difA_D)
+q0.975 <- qt(0.975,df=n-1)
+
+media-q0.975*dp/sqrt(n)
+media+q0.975*dp/sqrt(n)
+```
+Fazendo o teste pareado:
+
+```{r}
+t.test(Glicemia_Antes,Glicemia_Depois,paired=T)
+```
+Resultado: há diferença no antes e depois.
+
+# IC para diferenÃ§a de mÃ©dias de populaÃ§Ãµes independentes.
+
+Exemplo slide 20
+
+```{r}
+dadosIC <- read_excel("dadosIC.xlsx", sheet = "Comprimento2")
+head(dadosIC)
+attach(dadosIC)
+```
+```{r}
+n.R1 <- length(R1)
+med1 <- mean(R1)
+var1 <- var(R1)
+
+n.R2 <- length(R2)
+med2 <- mean(R2)
+var2 <- var(R2)
+
+# ...
+
+t.test(R1,R2,var.equal=T)
+```
+

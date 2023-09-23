@@ -1,0 +1,74 @@
+---
+title: "Aula 05"
+author: "Thiago Moraes Rizzieri"
+date: "`r Sys.Date()`"
+output: 
+  rmdformats::readthedown
+mainfont: Courier New
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Pacotes utilizados neste RMD.
+
+```{r}
+library("rmdformats")
+library("readxl")
+```
+
+# Exercício 1
+
+Um grupo de pacientes com problemas cardíacos foi avaliado para um estudo sobre eficiência de um medicamento. Os níveis de colesterol (lipoproteínas de alta densidade, HDL) foram medidos e estão descritos a seguir.
+
+```{r}
+niveis <- c(125.6, 124.2, 127.3, 155, 143.3, 147.9, 119.9, 99.7, 133.9, 110.9, 126.3, 149.9, 130.7, 146.1, 134.3, 139.4, 153.7, 151, 146.5, 129.5, 131.3, 136.5, 126.7, 145.1, 147.9, 132.2, 145.5, 145.2, 148.5, 165.2)
+```
+## a) Verifique a suposição de normalidade da variável de estudo.
+
+**Resolução:** Primeiramente, é interessante plotarmos o gráfico de sua distribuição para termos um primeiro olhar se a amostra se aproxima de uma distribuição normal ou não. Podemos criar um histograma bem básico apenas para fazermos essa visualização inicial.
+
+```{r}
+hist(niveis)
+```
+
+Em seguida, podemos utilizar o teste de hipóteses de Shapiro-Wilk para testar a normalidade da nossa amostra. Este teste toma como hipótese inicial de que os dados da amostra seguem uma distribuição normal. Consideraremos o nível $\alpha = 0.05$.
+
+```{r}
+shapiro.test(niveis)
+```
+
+Podemos observar que o $p$ valor do teste foi de $0.3881$, ou seja, é maior que o nível de significância $\alpha = 0.05$. Portanto, rejeitamos a hipótese de que a amostra possui distribuição normal.
+
+## b) O nível médio de colesterol HDL destes pacientes é maior do que 130mg/dl? Utilize um nível de significância de 0,05.
+
+**Resolução:** Como a hipótese de normalidade não foi satisfeita, não podemos utilizar testes que precisam dessa suposição para serem aplicados. Por isso, iremos aplicar o teste de Wilcoxon para testar a média, pois não precisamos supor normalidade dos dados.
+
+Queremos saber se a média populacional está acima de 130mg/dl, então aplicamos um teste unilateral da seguinte forma:
+
+```{r}
+wilcox.test(niveis,
+alternative="greater",mu=130)
+```
+O resultado indica um p valor menor que o nível de significância $\alpha = 0.05$. Portanto, não rejeitamos a hipótese de que a média verdadeira está acima de 130mg/dl.
+
+# Exercício 2
+
+A secretaria municipal afirmou que no máximo 15% das residências possuem ciradouros de dengue. Um levantamento foi realizado e foram encontrados criadouros de dengue em 62 de 586 residências visitadas. Com nível de significância de 0.05, verifique a veracidade da afirmação.
+
+**Resolução:** Observemos inicialmente a porcentagem de dengue encontrada no levantamento em questão.
+
+```{r}
+cat(62/586*100,"%")
+```
+Assim, esse único levantamento apenas reforça a afirmação dada anteriormente, desde que o levantamento tenha sido feito de forma apropriada neste experimento. Mas vale ressaltar que apenas um exemplo afirmativo não comprova a veracidade da afirmação dita pela secretaria.
+
+Por isso, iremos aplicar um teste de hipóteses chamado Teste Binomial para testar sobre a verdadeira probabilidade de ocorrer dengue numa certa residência deste município. Tomaremos a afirmação da secretaria como hipótese nula.
+
+```{r}
+binom.test(x = 62, n = 586, p = 0.15, alternative = "less")
+```
+
+Temos que o p valor é menor que o nível de significância de $0.05$. Portanto, não rejeitamos a hipótese de que no máximo $15\%$ das residências possuem criadouros de dengue.
+
